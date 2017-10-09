@@ -1,0 +1,93 @@
+---
+title: "Linreg specification"
+author: "Milda Poceviciute, Henrik Karlsson"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Linreg specification}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r, include = FALSE}
+library(linreg)
+data("iris")
+```
+
+This vignette summarises the _Least-squares estimation and related techniques_ of linear regression that are available in linreg package.The examples are provided based on Iris data set and linear regression formula:
+
+```{r}
+example_formula <- Petal.Length~Sepal.Width+Sepal.Length
+```
+
+
+## General information
+
+The package contains _linreg_ RC object, hence the syntax of calling it is: 
+
+```{r, results = "hide"}
+linreg_example <- linreg$new(example_formula, data=iris)
+```
+
+The _linreg_ includes calculations of these values:
+
+*    _Estimate of regression coefficients:_
+        $$\mathbf{\hat{\mathrm{\beta}}=(X^TX)^{-1}X^Ty}$$
+*    _The fitted values:_
+        $$\mathbf{\hat{y}=X\hat{\mathrm{\beta}}}$$
+*    _The residuals:_
+        $$\mathbf{\hat{e}=y-\hat{{y}}}$$
+*    _The degrees of freedom:_
+        $$df=n-p$$
+where $n$ is the number of observations and $p$ is the number of parameters in the model.
+*    _The residual variance:_
+        $$\hat{\sigma}^2\mathbf{=\frac{e^Te}{df}}$$
+*    _The variance of the regression coefficients:_
+        $$\mathbf{\widehat{\mathrm{Var}}(\hat{\mathrm{\beta}})}=\hat{\sigma}^2\mathbf{(X^TX)^{-1}}$$
+ 
+
+## Methods
+
+Below are listed available methods with examples:
+
+*   **print()**, returns the coefficients and coefficient names.
+```{r}
+
+linreg_example$print()
+```
+*   **plot()**, returns _Residuals vs Fitted_ and _Scale−Location_ plots
+```{r}
+
+linreg_example$plot()
+```
+
+*   **resid()**, returns return the vector of residuals $\mathbf{e}$.(in the example only first 5 values are displayed)
+```{r}
+
+residuals <- linreg_example$resid()
+residuals[1:5]
+```
+
+*   **pred()**, returns the predicted values $\mathbf{\hat{y}}$ (in the example only first 5 values are displayed)
+```{r}
+
+predicted <- linreg_example$pred()
+predicted[1:5]
+```
+
+*   **coef()**, returns the coefficients as a named vector
+```{r}
+
+linreg_example$coef()
+```
+
+*   **summary()**, returns the coefficients, their standard error, $t-value$, $p-value$, and the degrees of freedom in the model
+
+```{r}
+
+linreg_example$summary()
+```
+
+
+```{r, echo= FALSE}
+sessionInfo()
+```
