@@ -1,18 +1,24 @@
 visualize_airport_delays <- function() {
     
-    group_delays <-
-        flights %>% dplyr::group_by(dest) %>% summarize(Avg = mean(arr_delay, na.rm = TRUE))
+    delay_data <- flights %>% 
+        group_by(dest) %>% 
+        summarize(Avg = mean(arr_delay, na.rm = TRUE)) %>%
+        left_join(airports, by = c("dest" = "faa")) %>%
+        mutate(corrdinates = paste("lat = ", lat, ", lon = ", lon, sep = " ")) %>%
+        filter(!is.na(name),
+               !is.nan(Avg))
     
-    joined <-
-        group_delays %>% mutate(faa = dest) %>% left_join(airports)
     
-    coord <- joined %>%
-        group_by(dest) %>%
-        summarize(Coordinates = paste0("lat = ", lat[1], ", lon = ", lon[1], collapse = " "))
     
-    final_data <- dplyr::left_join(joined, coord, by = "dest")
-    plot <-
-        ggplot(final_data, aes(x = dest, y = Avg, label = Coordinates))
+    plot <- ggplot(delay_data, aes(x = dest, y = Avg, labels = corrdinates)) +
+        geom_point(aes(alpha = .2)) +
+        theme(axis.text.x=element_text(angle=60,hjust=1),
+              legend.position="none") +
+        geom_jitter() +
+        ggtitle("Average delay to airports") +
+        ylab("Average delay in minutes") +
+        xlab("Airports")
+        
     
 }
 
