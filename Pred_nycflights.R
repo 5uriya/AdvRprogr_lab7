@@ -36,7 +36,10 @@ lapply(df, FUN = function(x){summary(x)})
 df <- df %>%
     filter(!is.na(temp), # Removes missing weather data
            !is.na(arr_delay)) %>% # Removes missing delay data
-    select(-year) # Removes year since no variance
+    select(-year) %>% # Removes year since no variance
+    filter(!is.na(pressure))
+
+df <- df[complete.cases(df), ]
 
 # Select variables with predictive value
 cor_matrix <- cor(df[sapply(df, is.numeric)], use = "na.or.complete")
@@ -49,17 +52,15 @@ df1 <- df %>%
     select(names(has_effect),
            -sched_dep_time)
 
-str(df)
 df <- df %>%
     select(-c(sched_dep_time, carrier, flight, tailnum, dest,
               minute, time_hour, wind_gust))
-
 
 # Create test and training data -------------------------------------------
 
 set.seed(1991)
 # Create train and test data
-in_train <- createDataPartition(y = df$origin, 
+in_train <- createDataPartition(y = df$arr_delay, 
                                 p = .8, 
                                 list = FALSE)
 
@@ -67,7 +68,7 @@ training <- df[in_train, ]
 tmp <- df[-in_train, ]
 
 # create validate and test data
-in_validate <- createDataPartition(y = tmp$origin, p = .75, list = FALSE)
+in_validate <- createDataPartition(y = tmp$arr_delay, p = .75, list = FALSE)
 
 validate <- tmp[in_validate, ]
 testing <- tmp[-in_validate, ]
@@ -82,17 +83,22 @@ ctrl <- trainControl(method = "repeatedcv", repeats = 3)
 
 # Train model -------------------------------------------------------------
 
-lmr <- train(arr_delay ~ .,
-                  data = training,
-                  method = "",
-                  trControl = ctrl)
-
+# Model 1
+# 15 min to run, lambda = 0, Rsquared = 87.124% MAE 10.87018
+start <- Sys.time()
+lmr_fit <- train(arr_delay ~ .,
+                 data = training,
+                 method = "ridge",
+                 trControl = ctrl,
+                 preProc = "scale")
+end <- Sys.time()
+end-start
 
 
 # Model validation --------------------------------------------------------
 
-lmr_class <- predict(lmr, newdata = validate)
-lmr_probs <- predict(multinom, newdata = val, type = "prob")
+lmr_class <- predict(lmr_fit, newdata = validate)
+
 
 confusionMatrix(data = lmr_class, validate$arr_delay)
 
