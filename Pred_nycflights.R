@@ -5,6 +5,8 @@ library(tidyverse)
 library(nycflights13)
 library(caret)
 
+set.seed(1991)
+
 # Read data ---------------------------------------------------------------
 
 flights <- nycflights13::flights
@@ -33,13 +35,13 @@ weather_NA
 
 lapply(df, FUN = function(x){summary(x)})
 
-df <- df %>%
-    filter(!is.na(temp), # Removes missing weather data
-           !is.na(arr_delay)) %>% # Removes missing delay data
-    select(-year) %>% # Removes year since no variance
-    filter(!is.na(pressure))
+# Delete all cases with missing value
+df <- df[complete.cases(df), ] %>%
+    select(-year)
 
-df <- df[complete.cases(df), ]
+# Reducing the amount of data used for analysis
+df <- df %>%
+    sample_frac(.1)
 
 # Select variables with predictive value
 cor_matrix <- cor(df[sapply(df, is.numeric)], use = "na.or.complete")
@@ -84,7 +86,7 @@ ctrl <- trainControl(method = "repeatedcv", repeats = 3)
 # Train model -------------------------------------------------------------
 
 # Model 1
-# 15 min to run, lambda = 0, Rsquared = 87.124% MAE 10.87018
+# Full data 15 min to run, lambda = 0, Rsquared = 87.124% MAE 10.87018
 start <- Sys.time()
 lmr_fit <- train(arr_delay ~ .,
                  data = training,
