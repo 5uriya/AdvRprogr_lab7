@@ -17,10 +17,22 @@ test_that("class is correct", {
 })
 
 test_that("coef() method works", {
-    lmr <- ridgereg$new(Petal.Length~Sepal.Width+Sepal.Length, data=iris, lambda = 0)
-    lm_output <- lm.ridge(Petal.Length~Sepal.Width+Sepal.Length, data=iris, lambda = 0)
+    lmr <- ridgereg$new(Petal.Length~Sepal.Width+Sepal.Length, data=iris, lambda = 2)
+    lm_output <- lm.ridge(Petal.Length~Sepal.Width+Sepal.Length, data=iris, lambda = 2)
     lm_coef <- round(as.vector(lm_output$coef),2)
     lmr_coef <- round(as.vector(lmr$coef()),2)
     is_equivalent_to(lm_coef,lmr_coef)
     })
+
+lmr_test <- ridgereg$new(Petal.Length~Sepal.Width+Sepal.Length, data=iris, lambda = c(3,2))
+
+test_that("print() method works", {
+        expect_output(print_output <-lmr_test$print())
+})
+
+test_that("predict() method works", {
+   expect_output(lmr_test_output <-lmr_test$predict())
+})
+
+
 
