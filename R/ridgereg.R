@@ -3,7 +3,7 @@
 #' @field data a data frame.
 #' @field lambda a hyperparameter.
 #' @description Returns the result of the Ridge Regression
-#' @examples 
+#' @examples
 #' data(iris)
 #' ridgereg$new(Petal.Length~Sepal.Width+Sepal.Length, data=iris, lambda = 0)$print()
 #' ridgereg$new(Petal.Length~Sepal.Width+Sepal.Length, data=iris, lambda = 0)$predict()
@@ -18,14 +18,12 @@ ridgereg <- setRefClass(
         data = "data.frame",
         lambda = "numeric",
         beta_hat = "matrix",
-        beta_zero= "numeric",
+        beta_zero = "numeric",
         y_hat = "matrix",
         data_name = "character"
     ),
     methods = list(
-        initialize = function(formula, data, lambda){
-        
-            
+        initialize = function(formula, data, lambda) {
             formula <<- formula
             data <<- data
             lambda <<- lambda
@@ -35,11 +33,11 @@ ridgereg <- setRefClass(
             # Define matrix
             X <- model.matrix(formula, data)
             
-            if (normalise == TRUE){
-            # Normalise the X matrix without intercept
-            X_int <- X[,1]
-            X_sc <- scale(X[,-1])
-            X <- cbind(X_int,X_sc)
+            if (normalise == TRUE) {
+                # Normalise the X matrix without intercept
+                # X_int <- X[,1]
+                X <- scale(X[, -1])
+                # X <- cbind(X_int,X_sc)
             }
             
             # extract the dependant variable from data set
@@ -47,29 +45,43 @@ ridgereg <- setRefClass(
             y <- (data[, dep_name])
             I <- diag(ncol(X))
             # Calculate coefficients
-            beta_hat <<- solve((t(X) %*% X + lambda*I)) %*% t(X) %*% y
-            #beta_zero <<- mean(y)
+            beta_hat <<- solve((t(X) %*% X + lambda * I)) %*% t(X) %*% y
+            beta_zero <<- mean(y)
             
             # find the fitted values of y using beta_hat
-            y_hat <<- X %*% beta_hat
-         },
+            y_hat <<- X %*% beta_hat + beta_zero
+        },
         # Build ridgereg print function
         print = function() {
-           
             # Print function call
             cat(sep = "\n")
             cat("Call:")
             cat(sep = "\n")
-            cat(paste("ridgereg(", "formula = ", formula[2], " ", formula[1], " ", formula[3], ", ", "data = ", data_name, ")", sep = "" ))
+            cat(
+                paste(
+                    "ridgereg(",
+                    "formula = ",
+                    formula[2],
+                    " ",
+                    formula[1],
+                    " ",
+                    formula[3],
+                    ", ",
+                    "data = ",
+                    data_name,
+                    ")",
+                    sep = ""
+                )
+            )
             
             cat(sep = "\n")
             cat(sep = "\n")
             cat("Coefficients:")
             
             cat(sep = "\n")
-            coef_v <-as.vector(beta_hat)
-            names(coef_v) <- c("(Intercept)",row.names(beta_hat)[-1])
-           
+            coef_v <- c(beta_zero, beta_hat)
+            names(coef_v) <- c("(Intercept)", row.names(beta_hat))
+            
             return(coef_v)
             
         },
@@ -79,12 +91,10 @@ ridgereg <- setRefClass(
         },
         # Build ridgereg coef print function
         coef = function() {
-            coef_v <-as.vector(beta_hat[-1])
-            names(coef_v) <- c(row.names(beta_hat)[-1])
+            coef_v <- as.vector(beta_hat)
+            names(coef_v) <- c(row.names(beta_hat))
             return(coef_v)
         }
         
     )
 )
-
-
