@@ -10,14 +10,16 @@ visualize_airport_delays <- function() {
     
     
     
-    plot <- ggplot(delay_data, aes(x = dest, y = Avg, labels = corrdinates)) +
-        geom_point(aes(alpha = .2)) +
-        theme(axis.text.x=element_text(angle=60,hjust=1),
-              legend.position="none") +
+    plot <- ggplot(delay_data, aes(x = lat, y = lon, colour = Avg, alpha = 0.2, size = Avg)) +
+        geom_point() +
+        # theme(axis.text.x=element_text(angle=60,hjust=1),
+        #       legend.position="none") +
         geom_jitter() +
         ggtitle("Average delay to airports") +
-        ylab("Average delay in minutes") +
-        xlab("Airports")
+        ylab("Longitude") +
+        xlab("Latitude")
+    
+    return(plot)
         
 }
-
+visualize_airport_delays()

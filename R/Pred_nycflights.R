@@ -17,7 +17,7 @@ weather <- nycflights13::weather
 
 # Removed variable time stamps from weather
 weather <- weather %>%
-    select(-year, -month, -day, -hour)
+    dplyr::select(-year, -month, -day, -hour)
 
 # Join flights and weather data
 df <- left_join(flights, weather, by = c("origin", "time_hour")) 
@@ -37,25 +37,25 @@ lapply(df, FUN = function(x){summary(x)})
 
 # Delete all cases with missing value
 df <- df[complete.cases(df), ] %>%
-    select(-year)
+    dplyr::select(-year)
 
 # Reducing the amount of data used for analysis
 df <- df %>%
     sample_frac(.1)
 
 # Select variables with predictive value
-cor_matrix <- cor(df[sapply(df, is.numeric)], use = "na.or.complete")
+cor_matrix <- cor(df[sapply(df, is.numeric)])
 cor_matrix
 
 has_effect <- cor_matrix[cor_matrix[,"dep_delay"] >= abs(0.15) ,"dep_delay"]
 
 # Small data set with cor higher than abs(.15)
 df1 <- df %>%
-    select(names(has_effect),
+    dplyr::select(names(has_effect),
            -sched_dep_time)
 
 df <- df %>%
-    select(-c(sched_dep_time, carrier, flight, tailnum, dest,
+    dplyr::select(-c(sched_dep_time, carrier, flight, tailnum, dest,
               minute, time_hour, wind_gust))
 
 # Create test and training data -------------------------------------------
