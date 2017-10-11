@@ -33,27 +33,28 @@ weather_NA
 # No systematic missingness in airports (1 airport etc), therefor I exclude all flights with missing weather.
 # However seasonality...
 
+
 lapply(df, FUN = function(x){summary(x)})
 
 # Delete all cases with missing value
 df <- df[complete.cases(df), ] %>%
     dplyr::select(-year)
 
+
 # Reducing the amount of data used for analysis
 df <- df %>%
     sample_frac(.1)
 
+
 # Select variables with predictive value
 cor_matrix <- cor(df[sapply(df, is.numeric)])
-cor_matrix
 
-has_effect <- cor_matrix[cor_matrix[,"dep_delay"] >= abs(0.15) ,"dep_delay"]
+has_effect <- cor_matrix[cor_matrix[,"arr_delay"] >= abs(0.15) ,"arr_delay"]
 
-# Small data set with cor higher than abs(.15)
-df1 <- df %>%
-    dplyr::select(names(has_effect),
-           -sched_dep_time)
+formula_short <- arr_delay ~ dep_delay + dep_time + hour
 
+
+# Remove variables without effect
 df <- df %>%
     dplyr::select(-c(sched_dep_time, carrier, flight, tailnum, dest,
               minute, time_hour, wind_gust))
@@ -80,30 +81,82 @@ rm(tmp)
 
 # Set resampling method ---------------------------------------------------
 
-ctrl <- trainControl(method = "repeatedcv", repeats = 3)
+ctrl <- trainControl(method = "repeatedcv", 
+                     repeats = 3)
 
 
-# Train model -------------------------------------------------------------
+# Modeling ----------------------------------------------------------------
 
 # Model 1
-# Full data 15 min to run, lambda = 0, Rsquared = 87.124% MAE 10.87018
 start <- Sys.time()
-lmr_fit <- train(arr_delay ~ .,
+lmr_fit1 <- train(arr_delay ~ .,
                  data = training,
                  method = "ridge",
                  trControl = ctrl,
                  preProc = "scale")
 end <- Sys.time()
 end-start
+# Full data 15 min to run, lambda = 0, Rsquared = 87.124% MAE 10.87018
+
+# Predict
+lmr_class1 <- predict(lmr_fit1, newdata = validate)
+
+# Evaluate
+lmr_fit1
+
+df_lmr_fit1 <- validate %>%
+    dplyr::select(arr_delay) %>%
+    cbind(., fitted_values = predict(lmr_fit1, newdata = validate)) %>%
+    mutate(resid = arr_delay - fitted_values)
+    
+
+gg1_lmr_fit1 <- ggplot(data = df_lmr_fit1, aes(x = arr_delay, y = fitted_values)) +
+    geom_point(aes(alpha = .01)) +
+    geom_abline(slope = 1, intercept = 0, colour = "red", size = 0.5)
+
+gg2_lmr_fit1 <- ggplot(data = df_lmr_fit1, aes(x = fitted_values, y = resid)) +
+    geom_point(aes(alpha = .01)) +
+    geom_smooth(method = "loess", se = FALSE, colour = "red", size = .5)
+
+postResample(lmr_class1, validate$arr_delay)
 
 
-# Model validation --------------------------------------------------------
 
-lmr_class <- predict(lmr_fit, newdata = validate)
+# Model 2
+lmr_fit2 <- train(formula_short,
+                  data = training,
+                  method = "ridge",
+                  trControl = ctrl,
+                  preProc = "scale")
+
+# Predict
+lmr_class2 <- predict(lmr_fit2, newdata = validate)
+
+# Evaluted
+lmr_fit2
+
+df_lmr_fit2 <- validate %>%
+    dplyr::select(arr_delay) %>%
+    cbind(., fitted_values = predict(lmr_fit2, newdata = validate)) %>%
+    mutate(resid = arr_delay - fitted_values)
 
 
-confusionMatrix(data = lmr_class, validate$arr_delay)
+gg1_lmr_fit2 <- ggplot(data = df_lmr_fit2, aes(x = arr_delay, y = fitted_values)) +
+    geom_point(aes(alpha = .01)) +
+    geom_abline(slope = 1, intercept = 0, colour = "red", size = 0.5)
 
+gg2_lmr_fit2 <- ggplot(data = df_lmr_fit2, aes(x = fitted_values, y = resid)) +
+    geom_point(aes(alpha = .01)) +
+    geom_smooth(method = "loess", se = FALSE, colour = "red", size = .5)
+
+postResample(lmr_class2, validate$arr_delay)
+
+# Best model
+
+resamp <- resamples(list(rreg_all_vars = lmr_fit1,
+                         rreg_high_cor = lmr_fit2))
+
+summary(resamp)
 
 # Final model -------------------------------------------------------------
 
