@@ -1,0 +1,130 @@
+---
+title: "Ridgereg specification"
+author: "Milda Poceviciute, Henrik Karlsson"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Ridgereg specification}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r, include = FALSE}
+library(linreg)
+library(tidyverse)
+library(mlbench)
+library(caret) 
+data("BostonHousing")
+```
+
+This vignette provides an example of prediction and how it could be done using ridgereg funtion that is available in linreg package.In the example the prediction tools from caret package are used. The pupil-teacher ratio from BostonHousing data set will be modelled using other data available in the data set. The list of independent variables are: 
+
+```{r}
+boston <- BostonHousing
+colnames(boston[-11])
+```
+
+More details of BostonHousing data can be found on the [specification of mlbench](https://cran.r-project.org/web/packages/mlbench/mlbench.pdf).
+
+## Preparing test and training datasets
+
+First of all, the data is devided into testing and training data sets. 80% of randomly selected data goes to training data set, and remining 20% are used in the testing data set.
+```{r}
+set.seed(1991)
+inTrain <- createDataPartition(y = boston$ptratio,
+                                 ## the outcome data are needed
+                                p = .8,
+                                 ## The percentage of data in the
+                                ## training set
+                                list = FALSE)
+training <- BostonHousing[ inTrain,]
+testing <- BostonHousing[-inTrain,]
+```
+
+## Fitting models
+* The simple linear regression model is fitted on training dataset
+```{r}
+# Resampling method set
+ctrl <- trainControl(method = "repeatedcv", repeats = 3)
+lm_fit <- train(ptratio ~ .,
+                 data = training,
+                 method = "lm",
+                 trControl = ctrl,
+                 preProc = "scale")
+summary(lm_fit)
+
+```
+From the summary, we see that only zn(proportion of residential land zoned for lots over 25,000 sq.ft), indus(proportion of non-retail business acres per town), nox(nitric oxides concentration (parts per 10 million)), rad(index of accessibility to radial highways), b(1000(B - 0.63)^2 where B is the proportion of blacks by town), lstat(percentage of lower status of the population) and medv(median value of owner-occupied homes in USD 1000's) betas have p-value which is much less than 0.05. This means, that we reject the null hypothesis that these β = 0. So we adjust our model to include only these variables:
+
+```{r}
+# Resampling method set
+ctrl <- trainControl(method = "repeatedcv", repeats = 3)
+lm_fit <- train(ptratio ~ zn + indus + nox + rad + b + lstat + medv,
+                 data = training,
+                 method = "lm",
+                 trControl = ctrl,
+                 preProc = "scale")
+
+```
+
+* The linear regression model with forward selection of covariates is fitted on training dataset
+```{r, message=FALSE, warning=FALSE}
+lmf_fit <- train(ptratio ~ .,
+                 data = training,
+                 method = 'leapForward',
+                 trControl = ctrl,
+                 preProc = "scale")
+
+summary(lmf_fit)
+```
+The summary function indicates that only zn(proportion of residential land zoned for lots over 25,000 sq.ft), nox(nitric oxides concentration (parts per 10 million)), rad(index of accessibility to radial highways) and medv(median value of owner-occupied homes in USD 1000's) independent variables are significant. So we adjust our model:
+```{r}
+lmf_fit <- train(ptratio ~ zn + nox + rad + medv,
+                 data = training,
+                 method = 'leapForward',
+                 trControl = ctrl,
+                 preProc = "scale")
+
+```
+
+## Evaluation of models 1 and 2.
+
+In order to evaluate the performance we will examine the output of resample function of caret package:
+```{r}
+
+resamps <- resamples(list(LinReg = lm_fit, LinRegForw = lmf_fit))
+summary(resamps)
+```
+Here, we see the comparison of MAE and RMSE of our fitted simple linear regression and linear regression model with forward selection models. In the categories of mean MAE and RMSE, the first model (simple linear regression) has lower numbers indicating smaller errors. Furthermore, mean Rsquared is higher for the first model, hence we can conclude that it is a better fitting model.
+
+```{r, include = FALSE}
+
+plot_data <- as.data.frame(cbind(scale(resid(lm_fit)),scale(resid(lmf_fit)),predict(lm_fit),predict(lmf_fit)))
+
+plot1 <- ggplot(plot_data, aes(plot_data[,3],plot_data[,1]))+
+        geom_point()+
+        geom_smooth(method = "loess")+
+        xlab("Fitted Values by lm")+
+        ylab("Residuals")+
+       ggtitle("Resid vs Fitted LM")
+
+
+plot2 <- ggplot(plot_data, aes(plot_data[,4],plot_data[,2]))+
+    geom_point()+
+    geom_smooth(method = "loess")+
+    xlab("Fitted Values by lm forward")+
+    ylab("Residuals")+
+    ggtitle("Resid vs Fitted LM Forward")
+```
+
+```{r, echo= FALSE}
+plot1
+plot2
+```
+
+The above plots of residuals vs fitted values for both models seem to have some underlying clustering tendency, which indicates that a deeper analysis is required in order to determine a better fitting module. 
+
+## Session information
+
+```{r, echo= FALSE}
+sessionInfo()
+```
