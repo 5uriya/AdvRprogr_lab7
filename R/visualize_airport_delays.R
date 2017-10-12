@@ -9,13 +9,13 @@ visualize_airport_delays <- function() {
     
     
     
-    plot <- ggplot(delay_data, aes(x = lat, y = lon, colour = Avg, alpha = 0.2)) +
+    plot <- ggplot(delay_data, aes(y = lat, x = lon, colour = Avg, alpha = 0.2, size = 3)) +
         geom_point() +
         # theme(legend.position="none") +
         ggtitle("Average delay to airports") +
         ylab("Longitude") +
         xlab("Latitude")
-    
+
     return(plot)
         
 }
