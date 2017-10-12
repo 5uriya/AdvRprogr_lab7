@@ -1,0 +1,14 @@
+base
+nycflights13
+lattice
+ggplot2
+caret
+tidyverse
+tibble
+tidyr
+readr
+purrr
+dplyr
+bindrcpp
+lars
+elasticnet
