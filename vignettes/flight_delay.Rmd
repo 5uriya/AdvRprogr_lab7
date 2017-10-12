@@ -158,7 +158,7 @@ list_ridgereg <- list(library = "linreg",
 
 # Model 1
 The first model we build contains all variables in our data set. Since ridge regression penalizes for a lot of covariates, we can include all variables without overfitting the model.
-```{r, model1, cache = TRUE}
+```{r, model1}
 # Model 1
 
 # Train model
@@ -206,7 +206,7 @@ postResample(lmr_class1, validate$arr_delay)
 # Model 2
 Model 2 we've used all variables that have a correlation above absolute 0.15.
 
-```{r, model2, cache = TRUE}
+```{r, model2}
 # Model 2
 lmr_fit2 <- train(formula_short,
                   data = training,
