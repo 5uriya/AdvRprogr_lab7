@@ -71,7 +71,7 @@ df <- df[complete.cases(df), ] %>%
 
 # Reducing the amount of data used for analysis
 df <- df %>%
-    sample_frac(.1)
+    sample_frac(.01)
 
 ```
 
@@ -142,23 +142,48 @@ ctrl <- trainControl(method = "repeatedcv",
 ```
 
 ```{r, implement_ridgereg}
-prm <- data.frame(parameter = c("formula", "data", "lambda"),
+# Build parameters
+ridge_prm <- data.frame(parameter = c("formula", "data", "lambda"),
                   class = c("formula", "data.frame", "numeric"),
                   label = c("formula", "data", "lambda"))
+
+# Build tune grid
+ridge_grid <- function(x, y, len = NULL, search = "grid"){
+    lambda_grid <- data.frame(lambda = seq(0, 1, by = 0.25))
+}
+
+# Build model fit
+ridge_fit <- function(x, y, wts, param, lev, last, weights, classProbs, ...){
+    df <- if(is.data.frame(x)){
+        x
+    } else{
+        as.data.frame(x)
+        # Need to add dependent variable from formula
+        df$arr_delay <- y
+        
+        # Build independent variables from formula
+    output <- ridgereg$new(arr_delay ~ ., data = df, lambda = ridge_prm$lambda)
+        
+    }
+}
+
 
 
 list_ridgereg <- list(library = "linreg",
                       type = "regression",
-                      parameters = prm,
-                      grid = "",
+                      parameters = ridge_prm,
+                      grid = ridge_grid,
                       fit = "",
-                      predict = "")
+                      predict = ""
+                      )
+
+
 
 ```
 
 # Model 1
 The first model we build contains all variables in our data set. Since ridge regression penalizes for a lot of covariates, we can include all variables without overfitting the model.
-```{r, model1}
+```{r, model1, message = FALSE}
 # Model 1
 
 # Train model
