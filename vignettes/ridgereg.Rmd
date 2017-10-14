@@ -19,8 +19,8 @@ data("BostonHousing")
 This vignette provides an example of prediction and how it could be done using ridgereg funtion that is available in linreg package.In the example the prediction tools from caret package are used. The pupil-teacher ratio from BostonHousing data set will be modelled using other data available in the data set. The list of independent variables are: 
 
 ```{r}
-boston <- BostonHousing
-colnames(boston[-11])
+boston <- BostonHousing[,-4]
+colnames(boston[-10])
 ```
 
 More details of BostonHousing data can be found on the [specification of mlbench](https://cran.r-project.org/web/packages/mlbench/mlbench.pdf).
@@ -36,8 +36,8 @@ inTrain <- createDataPartition(y = boston$ptratio,
                                  ## The percentage of data in the
                                 ## training set
                                 list = FALSE)
-training <- BostonHousing[ inTrain,]
-testing <- BostonHousing[-inTrain,]
+training <- boston[ inTrain,]
+testing <- boston[-inTrain,]
 ```
 
 ## Fitting models
@@ -168,7 +168,7 @@ Now, this function is used in training the ridgereg() model:
 
 ```{r}
 set.seed(12345)
-#ridgereg_example <- train(ptratio ~ ., data=training, method=Ridgereg_model, trControl=ctrl)
+ridgereg_example <- train(ptratio ~ ., data=training, method=Ridgereg_model, trControl=ctrl)
 ```
 
 ## Session information
