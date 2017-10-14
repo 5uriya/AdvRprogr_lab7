@@ -123,9 +123,14 @@ plot2
 
 The above plots of residuals vs fitted values for both models seem to have some underlying clustering tendency, which indicates that a deeper analysis is required in order to determine a better fitting module. 
 
-## rigdereg() model prediction
+## rigdereg() model prediction with a 10-fold cross-validation
 
-In this section an example of using rigdereg() function from linreg package is provided. Firstly, a list of arguments for caret prediction function is created:
+In this section an example of using rigdereg() function from linreg package is provided. We will test a range of $\lambda$ values: 
+```{r}
+seq(0,2,by=0.25)
+``` 
+
+Firstly, a list of arguments for caret prediction function is created:
 
 ```{r}
 Ridgereg_model <- list(
@@ -163,13 +168,38 @@ Ridgereg_model$predict <- function(modelFit, newdata, preProc = NULL, submodels 
 }
 ```
 
-Now, this function is used in training the ridgereg() model:
+Now, set up the 10-fold cross-validation and train the ridgereg() model:
 
 ```{r}
 set.seed(1991)
-ridgereg_example <- caret::train(ptratio ~ ., data=training, method=Ridgereg_model, trControl=ctrl)
-ridgereg_example
+ctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 10)
+ridgereg_fit <- caret::train(ptratio ~ ., data=training, method=Ridgereg_model, trControl=ctrl)
+ridgereg_fit
 ```
+
+The model determines that the best $\lambda$ value is 2 as with this value the RMSE and MAE was minimised.
+
+## Linear regression, linear regression with forward leap and ridge regression comparison
+
+Finally, all three models are tested on testing data set and the results compared (based on RMSE and MAE values)
+
+```{r}
+set.seed(1991)
+
+# "Linear Regression Model"
+Test_lm <- predict(lm_fit, testing)
+postResample(Test_lm,testing$ptratio)
+
+# "Linear Regression Model with forward selection"
+Test_lmf <- predict(lmf_fit, testing)
+postResample(Test_lmf,testing$ptratio)
+
+# "Ridgereg Model"
+Test_ridge <- predict(ridgereg_fit, testing)
+postResample(Test_ridge,testing$ptratio)
+
+```
+As ridgereg model has the lowest RMSE and MAE and highest $R^2$ values, we conclude that it is a best fitting model to the data.
 
 ## Session information
 
