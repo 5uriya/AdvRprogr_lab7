@@ -86,8 +86,19 @@ ridgereg <- setRefClass(
             
         },
         # Build ridgereg pred print function
-        predict = function() {
-            return((Fitted_values = round(y_hat, 2)))
+        predict = function(newdata = NULL) {
+            
+            if(is.null(newdata)){
+                result <- (Fitted_values = round(y_hat, 2))
+            } else{
+                newdata <- data.frame(newdata)
+                X <- as.matrix(scale(newdata))
+                beta_final <-    matrix(beta_hat, nrow=length(beta_hat))
+                pred <- (X %*% beta_final) + beta_zero
+                result <- pred[,1]
+            }
+            return(result)
+        
         },
         # Build ridgereg coef print function
         coef = function() {
