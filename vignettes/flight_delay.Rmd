@@ -141,42 +141,41 @@ ctrl <- trainControl(method = "repeatedcv",
                      repeats = 3)
 ```
 
+## Build list for implementing our ridge regression in Caret package
 ```{r, implement_ridgereg}
-# Build parameters
-ridge_prm <- data.frame(parameter = c("formula", "data", "lambda"),
-                  class = c("formula", "data.frame", "numeric"),
-                  label = c("formula", "data", "lambda"))
+Ridgereg_model <- list(
+    type = c("Regression"),
+    library = "linreg",
+    loop = NULL,
+    prob = NULL)
 
-# Build tune grid
-ridge_grid <- function(x, y, len = NULL, search = "grid"){
-    lambda_grid <- data.frame(lambda = seq(0, 1, by = 0.25))
+Ridgereg_model$parameters <- data.frame(parameter = "lambda",
+                                        class = "numeric",
+                                        label = "lambda")
+
+Ridgereg_model$grid <- function (x, y, len = NULL, search = "grid"){
+    data.frame(lambda = seq(0,2,by=0.25))
 }
 
-# Build model fit
-ridge_fit <- function(x, y, wts, param, lev, last, weights, classProbs, ...){
-    df <- if(is.data.frame(x)){
+Ridgereg_model$fit <- function (x, y, wts, param, lev, last, classProbs, ...){
+    dat <- if (is.data.frame(x))
         x
-    } else{
+    else
         as.data.frame(x)
-        # Need to add dependent variable from formula
-        df$arr_delay <- y
-        
-        # Build independent variables from formula
-    output <- ridgereg$new(arr_delay ~ ., data = df, lambda = ridge_prm$lambda)
-        
-    }
+    dat$.outcome <- y
+    
+    output <-
+        ridgereg$new(.outcome ~ ., data = dat, lambda = param$lambda, ...)
+    
+    output
 }
 
 
-
-list_ridgereg <- list(library = "linreg",
-                      type = "regression",
-                      parameters = ridge_prm,
-                      grid = ridge_grid,
-                      fit = "",
-                      predict = ""
-                      )
-
+Ridgereg_model$predict <- function(modelFit, newdata, preProc = NULL, submodels = NULL){
+    if (!is.data.frame(newdata))
+        newdata <- as.data.frame(newdata)
+    modelFit$predict(newdata)
+}
 
 
 ```
@@ -191,8 +190,7 @@ start <- Sys.time()
 lmr_fit1 <- train(arr_delay ~ .,
                  data = training,
                  method = "ridge",
-                 trControl = ctrl,
-                 preProc = "scale")
+                 trControl = ctrl)
 end <- Sys.time()
 end-start
 # Full data 15 min to run, lambda = 0, Rsquared = 87.124% MAE 10.87018
@@ -227,6 +225,7 @@ gg2_lmr_fit1
 postResample(lmr_class1, validate$arr_delay)
 
 ```
+The optimal lambda for model 1 was 1e-04.
 
 # Model 2
 Model 2 we've used all variables that have a correlation above absolute 0.15.
@@ -276,3 +275,16 @@ resamp <- resamples(list(rreg_all_vars = lmr_fit1,
 summary(resamp)
 ```
 
+As we can se from the output above, *model 1*, with all independent variables, have a lower _Mean Absolute Error_, a lower _Root Mean Square Error_ and a higher _Rsquared_ than model2 in our validation data, so we decide to use *model1*.
+
+# Result of final model
+
+With model 1, lambda 0.0001, we get the following results:
+```{R, final_model, echo = TRUE}
+postResample(predict(lmr_fit1, newdata = testing), testing$arr_delay)
+```
+
+### Session info
+```{r}
+sessionInfo()
+```
