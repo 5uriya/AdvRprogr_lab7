@@ -135,14 +135,14 @@ Ridgereg_model <- list(
     prob = NULL)
 
 Ridgereg_model$parameters <- data.frame(parameter = "lambda",
-                                    class = "numeric",
-                                    label = "lambda")
+                                        class = "numeric",
+                                        label = "lambda")
 
 Ridgereg_model$grid <- function (x, y, len = NULL, search = "grid"){
-    data.frame(lambda = c(0.5,1,2.5,4))
+    data.frame(lambda = 2)
 }
 
-Ridgereg_model$fit <- function (x, y, param){
+Ridgereg_model$fit <- function (x, y, wts, param, lev, last, classProbs, ...){
     dat <- if (is.data.frame(x))
         x
     else
@@ -156,21 +156,19 @@ Ridgereg_model$fit <- function (x, y, param){
 }
 
 
-Ridgereg_model$predict <-
-    function (modelFit, newdata, submodels = NULL){
-        if (!is.data.frame(newdata))
-            newdata <- as.data.frame(newdata)
-        newdata <- scale(newdata)
-        modelFit$predict(newdata)
-    }
-
+Ridgereg_model$predict <- function(modelFit, newdata, preProc = NULL, submodels = NULL){
+    if (!is.data.frame(newdata))
+        newdata <- as.data.frame(newdata)
+    newdata <- scale(newdata)
+    predict(modelFit, newdata)
+}
 ```
 
 Now, this function is used in training the ridgereg() model:
 
 ```{r}
 set.seed(12345)
-ridgereg_example <- train(ptratio ~ ., data=training, method=Ridgereg_model, trControl=ctrl)
+#ridgereg_example <- train(ptratio ~ ., data=training, method=Ridgereg_model, trControl=ctrl)
 ```
 
 ## Session information
