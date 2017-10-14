@@ -94,7 +94,7 @@ In order to evaluate the performance we will examine the output of resample func
 resamps <- resamples(list(LinReg = lm_fit, LinRegForw = lmf_fit))
 summary(resamps)
 ```
-Here, we see the comparison of MAE and RMSE of our fitted simple linear regression and linear regression model with forward selection models. In the categories of mean MAE and RMSE, the first model (simple linear regression) has lower numbers indicating smaller errors. Furthermore, mean Rsquared is higher for the first model, hence we can conclude that it is a better fitting model.
+Above we see the comparison of MAE and RMSE of our fitted simple linear regression and linear regression with forward selection models. In the categories of mean MAE and mean RMSE, the first model (simple linear regression) has lower numbers indicating smaller errors. Furthermore, mean Rsquared is higher for the first model, hence we can conclude that it is a better fitting model.
 
 ```{r, include = FALSE}
 
@@ -122,6 +122,56 @@ plot2
 ```
 
 The above plots of residuals vs fitted values for both models seem to have some underlying clustering tendency, which indicates that a deeper analysis is required in order to determine a better fitting module. 
+
+## rigdereg() model prediction
+
+In this section an example of using rigdereg() function from linreg package is provided. Firstly, a list of arguments for caret prediction function is created:
+
+```{r}
+Ridgereg_model <- list(
+    type = c("Regression"),
+    library = "linreg",
+    loop = NULL,
+    prob = NULL)
+
+Ridgereg_model$parameters <- data.frame(parameter = "lambda",
+                                    class = "numeric",
+                                    label = "lambda")
+
+Ridgereg_model$grid <- function (x, y, len = NULL, search = "grid"){
+    data.frame(lambda = c(0.5,1,2.5,4))
+}
+
+Ridgereg_model$fit <- function (x, y, param){
+    dat <- if (is.data.frame(x))
+        x
+    else
+        as.data.frame(x)
+    dat$.outcome <- y
+    
+    output <-
+        ridgereg$new(.outcome ~ ., data = dat, lambda = param$lambda)
+    
+    output
+}
+
+
+Ridgereg_model$predict <-
+    function (modelFit, newdata, submodels = NULL){
+        if (!is.data.frame(newdata))
+            newdata <- as.data.frame(newdata)
+        newdata <- scale(newdata)
+        modelFit$predict(newdata)
+    }
+
+```
+
+Now, this function is used in training the ridgereg() model:
+
+```{r}
+set.seed(12345)
+ridgereg_example <- train(ptratio ~ ., data=training, method=Ridgereg_model, trControl=ctrl)
+```
 
 ## Session information
 
