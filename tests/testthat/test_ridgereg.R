@@ -30,9 +30,4 @@ test_that("print() method works", {
         expect_output(print_output <-lmr_test$print())
 })
 
-test_that("predict() method works", {
-   expect_output(lmr_test_output <-lmr_test$predict())
-})
-
-
 
