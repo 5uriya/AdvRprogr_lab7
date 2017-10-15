@@ -1,2 +1,2 @@
-# AdvRprogr_lab4
-[![Build Status](https://travis-ci.com/poceviciute/AdvRprogr_lab4.svg?token=JsVfnSaWuY37Snj6Awfx&branch=master)](https://travis-ci.com/poceviciute/AdvRprogr_lab4)
+# AdvRprogr_lab7
+[![Build Status](https://travis-ci.org/henkar91/AdvRprogr_lab7.svg?branch=master)](https://travis-ci.org/henkar91/AdvRprogr_lab7)
