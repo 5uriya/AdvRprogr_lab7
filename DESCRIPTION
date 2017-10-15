@@ -7,7 +7,7 @@ Author: Henrik Karlsson and Milda Pocevicuite
 Maintainer: Henrik Karlsson <henka140@student.liu.se>
 Description: Linreg computes the linear regression. The package have several ways of presenting the results.
 License: GPL-2
-Depends: R (>= 3.0.1)
+Depends: R (>= 3.0.1), dplyr
 Imports: methods, stats, dplyr
 RoxygenNote: 6.0.1
 Suggests: testthat,
