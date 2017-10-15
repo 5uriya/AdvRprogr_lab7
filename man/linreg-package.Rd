@@ -30,4 +30,4 @@ Maintainer: \packageMaintainer{linreg}
 
 }
 
-}
+
