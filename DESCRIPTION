@@ -8,10 +8,10 @@ Maintainer: Henrik Karlsson <henka140@student.liu.se>
 Description: Linreg computes the linear regression. The package have several ways of presenting the results.
 License: GPL-2
 Depends: R (>= 3.0.1)
-Imports: methods, stats
+Imports: methods, stats, dplyr
 RoxygenNote: 6.0.1
 Suggests: testthat,
     knitr,
     rmarkdown, 
-    ggplot2, MASS, dplyr, caret, nycflights13, mlbench, leaps
+    ggplot2, MASS, caret, nycflights13, mlbench, leaps
 VignetteBuilder: knitr
