@@ -29,6 +29,5 @@ Maintainer: \packageMaintainer{linreg}
 \url{https://github.com/poceviciute/AdvRprogr_lab4}
 
 }
-\examples{
 
 }
