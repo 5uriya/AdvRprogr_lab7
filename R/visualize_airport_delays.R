@@ -1,3 +1,9 @@
+#' @title Visualize Airport Delays
+#' @name visualize_airport_delays
+#' @return A plot of airport delays by longitude and latitude
+#' @description Visualize Airport Delays
+#' @export
+
 visualize_airport_delays <- function() {
     
     delay_data <- flights %>% 
